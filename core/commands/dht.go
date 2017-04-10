@@ -98,7 +98,7 @@ var queryDhtCmd = &cmds.Command{
 		}()
 	},
 	Marshalers: cmds.MarshalerMap{
-		cmds.Text: func() func(cmds.Response) (io.Reader, error) {
+		cmds.Text: func() cmds.Marshaler {
 			pfm := pfuncMap{
 				notif.PeerResponse: func(obj *notif.QueryEvent, out io.Writer, verbose bool) {
 					for _, p := range obj.Responses {
