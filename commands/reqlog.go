@@ -63,6 +63,7 @@ func (rl *ReqLog) AddEntry(rle *ReqLogEntry) {
 func (rl *ReqLog) ClearInactive() {
 	rl.lock.Lock()
 	defer rl.lock.Unlock()
+
 	k := rl.keep
 	rl.keep = 0
 	rl.cleanup()
