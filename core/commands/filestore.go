@@ -85,13 +85,12 @@ The output is:
 				defer re.Close()
 
 				var (
+					v      interface{}
 					err    error
 					errors bool
 				)
 
-				for err == nil {
-					var v interface{}
-
+				for {
 					v, err = res.Next()
 					if err != nil {
 						break
