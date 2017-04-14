@@ -63,9 +63,8 @@ The output is:
 				return filestore.List(fs, c)
 			}, req.Context())
 
-			for v := range out {
-				re.Emit(v)
-			}
+			err = re.Emit(out)
+			log.Debug(err)
 		} else {
 			next, err := filestore.ListAll(fs)
 			if err != nil {
@@ -74,10 +73,8 @@ The output is:
 			}
 
 			out := listResToChan(next, req.Context())
-			for v := range out {
-				log.Debugf("%T", v)
-				re.Emit(v)
-			}
+			err = re.Emit(out)
+			log.Debug(err)
 		}
 	},
 	PostRun: map[cmds.EncodingType]func(cmds.Request, cmds.ResponseEmitter) cmds.ResponseEmitter{
