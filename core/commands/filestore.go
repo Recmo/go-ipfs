@@ -77,7 +77,7 @@ The output is:
 			log.Debug(err)
 		}
 	},
-	PostRun: map[cmds.EncodingType]func(cmds.Request, cmds.ResponseEmitter) cmds.ResponseEmitter{
+	PostRun: cmds.PostRunMap{
 		cmds.CLI: func(req cmds.Request, re cmds.ResponseEmitter) cmds.ResponseEmitter {
 			re_, res := cmds.NewChanResponsePair(req)
 
