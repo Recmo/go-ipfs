@@ -106,7 +106,7 @@ The output is:
 					}
 				}
 
-				if err == io.EOF || err.Error() == "EOF" {
+				if err == io.EOF {
 					// all good
 				} else if err == cmds.ErrRcvdError {
 					e := res.Error()

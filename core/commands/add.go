@@ -407,9 +407,10 @@ You can now refer to the added file in a gateway, like so:
 						}
 
 						// TODO why does err != io.EOF return true?
-						if err.Error() != "EOF" {
+						if err != io.EOF {
 							re.SetError(err, cmdsutil.ErrNormal)
 						}
+
 						return
 					}
 

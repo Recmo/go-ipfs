@@ -313,7 +313,7 @@ It takes a list of base58 encoded multihashs to remove.
 					log.Debugf("PostRun.go.for: Next returned %#v, %v ", v, err)
 
 					if err != nil {
-						if err == io.EOF || err.Error() == "EOF" {
+						if err == io.EOF {
 							break
 						}
 
