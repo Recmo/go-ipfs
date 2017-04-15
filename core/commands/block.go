@@ -67,7 +67,7 @@ on raw IPFS blocks. It outputs the following to stdout:
 			return
 		}
 
-		err := re.Emit(&BlockStat{
+		err = re.Emit(&BlockStat{
 			Key:  b.Cid().String(),
 			Size: len(b.RawData()),
 		})
