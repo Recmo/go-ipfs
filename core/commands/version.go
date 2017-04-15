@@ -8,9 +8,9 @@ import (
 
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	config "github.com/ipfs/go-ipfs/repo/config"
 	fsrepo "github.com/ipfs/go-ipfs/repo/fsrepo"
-	e "github.com/ipfs/go-ipfs/core/commands/e"
 )
 
 type VersionOutput struct {

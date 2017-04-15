@@ -72,8 +72,10 @@ func CommandsCmd(root *cmds.Command) *cmds.Command {
 		Run: func(req cmds.Request, re cmds.ResponseEmitter) {
 			rootCmd := cmd2outputCmd("ipfs", root)
 			rootCmd.showOpts, _, _ = req.Option(flagsOptionName).Bool()
-			re.Emit(&rootCmd)
-			re.Close()
+			err := re.Emit(&rootCmd)
+			if err != nil {
+				log.Error(err)
+			}
 		},
 		Encoders: map[cmds.EncodingType]func(cmds.Request) func(io.Writer) cmds.Encoder{
 			cmds.Text: func(req cmds.Request) func(io.Writer) cmds.Encoder {

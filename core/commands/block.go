@@ -67,10 +67,13 @@ on raw IPFS blocks. It outputs the following to stdout:
 			return
 		}
 
-		re.Emit(&BlockStat{
+		err := re.Emit(&BlockStat{
 			Key:  b.Cid().String(),
 			Size: len(b.RawData()),
 		})
+		if err != nil {
+			log.Error(err)
+		}
 	},
 	Type: BlockStat{},
 	Encoders: map[cmds.EncodingType]func(cmds.Request) func(io.Writer) cmds.Encoder{
@@ -104,7 +107,10 @@ It outputs to stdout, and <key> is a base58 encoded multihash.
 			return
 		}
 
-		re.Emit(bytes.NewReader(b.RawData()))
+		err = re.Emit(bytes.NewReader(b.RawData()))
+		if err != nil {
+			log.Error(err)
+		}
 	},
 }
 
@@ -203,10 +209,13 @@ It reads from stdin, and <key> is a base58 encoded multihash.
 			return
 		}
 
-		re.Emit(&BlockStat{
+		err = re.Emit(&BlockStat{
 			Key:  k.String(),
 			Size: len(data),
 		})
+		if err != nil {
+			log.Error(err)
+		}
 	},
 	Encoders: map[cmds.EncodingType]func(cmds.Request) func(io.Writer) cmds.Encoder{
 		cmds.Text: cmds.MakeEncoder(func(w io.Writer, v interface{}) error {
@@ -288,18 +297,11 @@ It takes a list of base58 encoded multihashs to remove.
 			re.SetError(err, cmdsutil.ErrNormal)
 			return
 		}
-		log.Debug("Run: starting loop")
-		for v := range ch {
-			log.Debug("got value %v from channel, emitting...", v)
-			err := re.Emit(v)
-			if err != nil {
-				re.SetError(err, cmdsutil.ErrNormal)
-				log.Debug("Run: returning from loop")
-				return
-			}
-			log.Debug("emitted")
+
+		err = re.Emit(ch)
+		if err != nil {
+			log.Error(err)
 		}
-		log.Debug("Run: loop done")
 	},
 	PostRun: map[cmds.EncodingType]func(cmds.Request, cmds.ResponseEmitter) cmds.ResponseEmitter{
 		cmds.CLI: func(req cmds.Request, re cmds.ResponseEmitter) cmds.ResponseEmitter {

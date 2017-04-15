@@ -64,7 +64,6 @@ The output is:
 			}, req.Context())
 
 			err = re.Emit(out)
-			log.Debug(err)
 		} else {
 			next, err := filestore.ListAll(fs)
 			if err != nil {
@@ -74,7 +73,9 @@ The output is:
 
 			out := listResToChan(next, req.Context())
 			err = re.Emit(out)
-			log.Debug(err)
+			if err != nil {
+				log.Error(err)
+			}
 		}
 	},
 	PostRun: cmds.PostRunMap{

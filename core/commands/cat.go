@@ -59,7 +59,7 @@ var CatCmd = &cmds.Command{
 		reader := io.MultiReader(readers...)
 		err = re.Emit(reader)
 		if err != nil {
-			re.SetError(err, cmdsutil.ErrNormal)
+			log.Error(err)
 		}
 		re.Close()
 	},
@@ -106,7 +106,10 @@ var CatCmd = &cmds.Command{
 				bar.Start()
 
 				log.Debug("PostRun.go.Emit()...")
-				re.Emit(reader)
+				err = re.Emit(reader)
+				if err != nil {
+					log.Error(err)
+				}
 				log.Debug("PostRun.go.Emit()...done")
 			}()
 
