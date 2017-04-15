@@ -4,12 +4,12 @@ import (
 	"io"
 	"strings"
 
-	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
 	"github.com/ipfs/go-ipfs/core"
 	e "github.com/ipfs/go-ipfs/core/commands/e"
 	ns "github.com/ipfs/go-ipfs/namesys"
 	path "github.com/ipfs/go-ipfs/path"
+	"gx/ipfs/QmUb9C21o1apw6UGHUnCK4a2eCoPYHkaRZwXWTYzxcztRU/go-ipfs-cmds/cmdsutil"
 )
 
 type ResolvedPath struct {

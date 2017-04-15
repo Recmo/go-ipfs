@@ -6,7 +6,7 @@ import (
 
 	cmds "github.com/ipfs/go-ipfs/commands"
 
-	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
+	"gx/ipfs/QmUb9C21o1apw6UGHUnCK4a2eCoPYHkaRZwXWTYzxcztRU/go-ipfs-cmds/cmdsutil"
 )
 
 func TestSynopsisGenerator(t *testing.T) {

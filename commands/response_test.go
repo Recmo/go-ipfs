@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	cmdsutil "github.com/ipfs/go-ipfs-cmds/cmdsutil"
+	cmdsutil "gx/ipfs/QmUb9C21o1apw6UGHUnCK4a2eCoPYHkaRZwXWTYzxcztRU/go-ipfs-cmds/cmdsutil"
 )
 
 type TestOutput struct {

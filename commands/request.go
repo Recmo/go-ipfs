@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
-	"github.com/ipfs/go-ipfs-cmds/files"
+	"gx/ipfs/QmUb9C21o1apw6UGHUnCK4a2eCoPYHkaRZwXWTYzxcztRU/go-ipfs-cmds/cmdsutil"
+	"gx/ipfs/QmUb9C21o1apw6UGHUnCK4a2eCoPYHkaRZwXWTYzxcztRU/go-ipfs-cmds/files"
 
 	"github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipfs/repo/config"

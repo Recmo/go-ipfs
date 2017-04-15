@@ -8,9 +8,9 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
 	diag "github.com/ipfs/go-ipfs/diagnostics"
+	"gx/ipfs/QmUb9C21o1apw6UGHUnCK4a2eCoPYHkaRZwXWTYzxcztRU/go-ipfs-cmds/cmdsutil"
 )
 
 type DiagnosticConnection struct {
