@@ -54,7 +54,10 @@ The output is:
 	Run: func(req cmds.Request, re cmds.ResponseEmitter) {
 		_, fs, err := getFilestore(req.InvocContext())
 		if err != nil {
-			re.SetError(err, cmdsutil.ErrNormal)
+			err_ := re.SetError(err, cmdsutil.ErrNormal)
+			if err_ != nil {
+				log.Error(err)
+			}
 			return
 		}
 		args := req.Arguments()
@@ -67,7 +70,10 @@ The output is:
 		} else {
 			next, err := filestore.ListAll(fs)
 			if err != nil {
-				re.SetError(err, cmdsutil.ErrNormal)
+				err_ := re.SetError(err, cmdsutil.ErrNormal)
+				if err_ != nil {
+					log.Error(err)
+				}
 				return
 			}
 
@@ -116,13 +122,22 @@ The output is:
 					// all good
 				} else if err == cmds.ErrRcvdError {
 					e := res.Error()
-					re.SetError(e.Message, e.Code)
+					err := re.SetError(e.Message, e.Code)
+					if err != nil {
+						log.Error(err)
+					}
 				} else {
-					re.SetError(err, cmdsutil.ErrNormal)
+					err_ := re.SetError(err, cmdsutil.ErrNormal)
+					if err_ != nil {
+						log.Error(err)
+					}
 				}
 
 				if errors {
-					re.SetError("errors while displaying some entries", cmdsutil.ErrNormal)
+					err := re.SetError("errors while displaying some entries", cmdsutil.ErrNormal)
+					if err != nil {
+						log.Error(err)
+					}
 				}
 			}()
 

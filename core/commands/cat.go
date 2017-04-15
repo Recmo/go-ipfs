@@ -28,13 +28,19 @@ var CatCmd = &cmds.Command{
 		log.Debugf("cat: RespEm type is %T", re)
 		node, err := req.InvocContext().GetNode()
 		if err != nil {
-			re.SetError(err, cmdsutil.ErrNormal)
+			err_ := re.SetError(err, cmdsutil.ErrNormal)
+			if err_ != nil {
+				log.Error(err)
+			}
 			return
 		}
 
 		if !node.OnlineMode() {
 			if err := node.SetupOfflineRouting(); err != nil {
-				re.SetError(err, cmdsutil.ErrNormal)
+				err_ := re.SetError(err, cmdsutil.ErrNormal)
+				if err_ != nil {
+					log.Error(err)
+				}
 				return
 			}
 		}
@@ -43,13 +49,20 @@ var CatCmd = &cmds.Command{
 		log.Debug("cat returned ", readers, length, err)
 
 		if err != nil {
-			re.SetError(err, cmdsutil.ErrNormal)
+			err_ := re.SetError(err, cmdsutil.ErrNormal)
+			if err_ != nil {
+				log.Error(err)
+			}
 			return
 		}
 
 		/*
 			if err := corerepo.ConditionalGC(req.Context(), node, length); err != nil {
-				res.SetError(err, cmdsutil.ErrNormal)
+			err_ := re.SetError(err, cmdsutil.ErrNormal)
+			if err_ != nil {
+				log.Error(err)
+			}
+
 				return
 			}
 		*/
@@ -72,7 +85,10 @@ var CatCmd = &cmds.Command{
 				if res.Length() > 0 && res.Length() < progressBarMinSize {
 					log.Debugf("cat.PR.go/res.Length() == %v < progressBarMinSize", res.Length())
 					if err := cmds.Copy(re, res); err != nil {
-						re.SetError(err, cmdsutil.ErrNormal)
+						err_ := re.SetError(err, cmdsutil.ErrNormal)
+						if err_ != nil {
+							log.Error(err)
+						}
 						log.Debugf("cat.PR.go.if/cmd.Copy error: %s", err)
 					}
 
@@ -86,9 +102,15 @@ var CatCmd = &cmds.Command{
 				log.Debugf("cat/res.Next() returned (%v, %v)", v, err)
 				if err != nil {
 					if err == cmds.ErrRcvdError {
-						re.SetError(res.Error().Message, res.Error().Code)
+						err_ := re.SetError(res.Error().Message, res.Error().Code)
+						if err_ != nil {
+							log.Error(err)
+						}
 					} else {
-						re.SetError(res.Error(), cmdsutil.ErrNormal)
+						err_ := re.SetError(res.Error(), cmdsutil.ErrNormal)
+						if err_ != nil {
+							log.Error(err)
+						}
 					}
 
 					log.Debug("PostRun.go Next err=", err)
@@ -97,7 +119,10 @@ var CatCmd = &cmds.Command{
 
 				r, ok := v.(io.Reader)
 				if !ok {
-					re.SetError(fmt.Sprintf("expected io.Reader, not %T", v), cmdsutil.ErrNormal)
+					err_ := re.SetError(fmt.Sprintf("expected io.Reader, not %T", v), cmdsutil.ErrNormal)
+					if err_ != nil {
+						log.Error(err)
+					}
 					log.Debug("PostRun.go cast to io.Reader failed")
 					return
 				}
