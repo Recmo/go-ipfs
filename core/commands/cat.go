@@ -70,9 +70,15 @@ var CatCmd = &cmds.Command{
 		re.SetLength(length)
 
 		reader := io.MultiReader(readers...)
+		// Since the reader returns the error that a block is missing, we need to take
+		// Emit errors and send them to the client. Usually we don't do that because
+		// it means the connection is broken or we supplied an illegal argument etc.
 		err = re.Emit(reader)
 		if err != nil {
-			log.Error(err)
+			err = re.SetError(err, cmdsutil.ErrNormal)
+			if err != nil {
+				log.Error(err)
+			}
 		}
 		re.Close()
 	},
