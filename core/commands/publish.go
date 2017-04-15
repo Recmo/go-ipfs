@@ -11,6 +11,7 @@ import (
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
 	core "github.com/ipfs/go-ipfs/core"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	path "github.com/ipfs/go-ipfs/path"
 
 	crypto "gx/ipfs/QmPGxZ1DP2w45WcogpW1h43BvseXbfke9N91qotpoQcUeS/go-libp2p-crypto"
@@ -138,9 +139,16 @@ Publish an <ipfs-path> with another name, added by an 'ipfs key' command:
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			ch := res.Output().(chan interface{})
-			v := (<-ch).(*IpnsEntry)
-			s := fmt.Sprintf("Published to %s: %s\n", v.Name, v.Value)
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+			entry, ok := v.(*IpnsEntry)
+			if !ok {
+				return nil, e.TypeErr(entry, v)
+			}
+
+			s := fmt.Sprintf("Published to %s: %s\n", entry.Name, entry.Value)
 			return strings.NewReader(s), nil
 		},
 	},

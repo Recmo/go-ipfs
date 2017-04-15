@@ -10,12 +10,12 @@ import (
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
 	"github.com/ipfs/go-ipfs/core"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	dag "github.com/ipfs/go-ipfs/merkledag"
 	path "github.com/ipfs/go-ipfs/path"
 
 	cid "gx/ipfs/QmV5gPoRsjN1Gid3LMdNZTyfCtP2DsvqEbMAmz82RmmiGk/go-cid"
 	node "gx/ipfs/QmYDscK7dmdo2GZ9aumS8s5auUUAH5mR1jvj5pYhWusfK7/go-ipld-node"
-	u "gx/ipfs/QmZuY8aV7zbNXVy6DyN9SmnuH3o9nG852F4aTiSBpts8d1/go-ipfs-util"
 )
 
 // KeyList is a general type for outputting lists of keys
@@ -25,8 +25,16 @@ type KeyList struct {
 
 // KeyListTextMarshaler outputs a KeyList as plaintext, one key per line
 func KeyListTextMarshaler(res cmds.Response) (io.Reader, error) {
-	out := unwrapOutput(res.Output())
-	output := out.(*KeyList)
+	out, err := unwrapOutput(res.Output())
+	if err != nil {
+		return nil, err
+	}
+
+	output, ok := out.(*KeyList)
+	if !ok {
+		return nil, e.TypeErr(output, out)
+	}
+
 	buf := new(bytes.Buffer)
 	for _, key := range output.Keys {
 		buf.WriteString(key.String() + "\n")
@@ -172,11 +180,14 @@ Displays the hashes of all local objects.
 
 var refsMarshallerMap = cmds.MarshalerMap{
 	cmds.Text: func(res cmds.Response) (io.Reader, error) {
-		v := unwrapOutput(res.Output())
+		v, err := unwrapOutput(res.Output())
+		if err != nil {
+			return nil, err
+		}
 
 		obj, ok := v.(*RefWrapper)
 		if !ok {
-			return nil, u.ErrCast()
+			return nil, e.TypeErr(obj, v)
 		}
 
 		if obj.Err != "" {

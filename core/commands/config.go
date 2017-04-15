@@ -13,11 +13,10 @@ import (
 
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	repo "github.com/ipfs/go-ipfs/repo"
 	config "github.com/ipfs/go-ipfs/repo/config"
 	fsrepo "github.com/ipfs/go-ipfs/repo/fsrepo"
-
-	u "gx/ipfs/QmZuY8aV7zbNXVy6DyN9SmnuH3o9nG852F4aTiSBpts8d1/go-ipfs-util"
 )
 
 type ConfigField struct {
@@ -119,15 +118,14 @@ Set the value of the 'Datastore.Path' key:
 				return nil, res.Error()
 			}
 
-			v := unwrapOutput(res.Output())
-
-			if v == nil {
-				return nil, u.ErrCast()
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
 			}
 
 			vf, ok := v.(*ConfigField)
 			if !ok {
-				return nil, u.ErrCast()
+				return nil, e.TypeErr(vf, v)
 			}
 
 			buf, err := config.HumanOutput(vf.Value)

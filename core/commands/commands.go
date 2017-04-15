@@ -13,7 +13,9 @@ import (
 
 	cmds "github.com/ipfs/go-ipfs-cmds"
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
+
 	oldcmds "github.com/ipfs/go-ipfs/commands"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 )
 
 type commandEncoder struct {
@@ -174,17 +176,17 @@ func cmdPathStrings(cmd *Command, showOptions bool) []string {
 // changes here will also need to be applied at
 // - ./dag/dag.go
 // - ./object/object.go
-func unwrapOutput(i interface{}) interface{} {
+// - ./files/files.go
+// - ./unixfs/unixfs.go
+func unwrapOutput(i interface{}) (interface{}, error) {
 	var (
 		ch <-chan interface{}
 		ok bool
 	)
 
 	if ch, ok = i.(<-chan interface{}); !ok {
-		if ch, ok = i.(chan interface{}); !ok {
-			return i
-		}
+		return nil, e.TypeErr(ch, i)
 	}
 
-	return <-ch
+	return <-ch, nil
 }

@@ -15,6 +15,7 @@ import (
 	cmdsutil "github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
 	core "github.com/ipfs/go-ipfs/core"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	dag "github.com/ipfs/go-ipfs/merkledag"
 	path "github.com/ipfs/go-ipfs/path"
 	ft "github.com/ipfs/go-ipfs/unixfs"
@@ -156,8 +157,15 @@ multihash.
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
-			object := v.(*Object)
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+
+			object, ok := v.(*Object)
+			if !ok {
+				return nil, e.TypeErr(object, v)
+			}
 
 			buf := new(bytes.Buffer)
 			w := tabwriter.NewWriter(buf, 1, 2, 1, ' ', 0)
@@ -237,19 +245,16 @@ This command outputs data in the following encodings:
 	Type: Node{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Protobuf: func(res cmds.Response) (io.Reader, error) {
-			var (
-				ch <-chan interface{}
-				ok bool
-			)
-			ch, ok = res.Output().(chan interface{})
-			if !ok {
-				ch, ok = res.Output().(<-chan interface{})
-				if !ok {
-					panic("object.get marshaler: res.Output() is not chan interface{}")
-				}
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
 			}
 
-			node := (<-ch).(*Node)
+			node, ok := v.(*Node)
+			if !ok {
+				return nil, e.TypeErr(node, v)
+			}
+
 			// deserialize the Data field as text as this was the standard behaviour
 			object, err := deserializeNode(node, "text")
 			if err != nil {
@@ -309,14 +314,15 @@ var ObjectStatCmd = &cmds.Command{
 	Type: node.NodeStat{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			var ch <-chan interface{}
-
-			if ch_, ok := res.Output().(chan interface{}); ok {
-				ch = ch_
-			} else {
-				ch = res.Output().(chan interface{})
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
 			}
-			ns := (<-ch).(*node.NodeStat)
+
+			ns, ok := v.(*node.NodeStat)
+			if !ok {
+				return nil, e.TypeErr(ns, v)
+			}
 
 			buf := new(bytes.Buffer)
 			w := func(s string, n int) {
@@ -417,15 +423,16 @@ And then run:
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			var ch <-chan interface{}
-
-			if ch_, ok := res.Output().(chan interface{}); ok {
-				ch = ch_
-			} else {
-				ch = res.Output().(chan interface{})
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
 			}
-			object := (<-ch).(*Object)
-			return strings.NewReader("added " + object.Hash + "\n"), nil
+			obj, ok := v.(*Object)
+			if !ok {
+				return nil, e.TypeErr(obj, v)
+			}
+
+			return strings.NewReader("added " + obj.Hash + "\n"), nil
 		},
 	},
 	Type: Object{},
@@ -477,15 +484,17 @@ Available templates:
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			var ch <-chan interface{}
-
-			if ch_, ok := res.Output().(chan interface{}); ok {
-				ch = ch_
-			} else {
-				ch = res.Output().(chan interface{})
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
 			}
-			object := (<-ch).(*Object)
-			return strings.NewReader(object.Hash + "\n"), nil
+
+			obj, ok := v.(*Object)
+			if !ok {
+				return nil, e.TypeErr(obj, v)
+			}
+
+			return strings.NewReader(obj.Hash + "\n"), nil
 		},
 	},
 	Type: Object{},
@@ -645,17 +654,15 @@ func NodeEmpty(node *Node) bool {
 }
 
 // copy+pasted from ../commands.go
-func unwrapOutput(i interface{}) interface{} {
+func unwrapOutput(i interface{}) (interface{}, error) {
 	var (
 		ch <-chan interface{}
 		ok bool
 	)
 
 	if ch, ok = i.(<-chan interface{}); !ok {
-		if ch, ok = i.(chan interface{}); !ok {
-			return nil
-		}
+		return nil, e.TypeErr(ch, i)
 	}
 
-	return <-ch
+	return <-ch, nil
 }

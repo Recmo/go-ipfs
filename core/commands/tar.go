@@ -7,6 +7,7 @@ import (
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
 	core "github.com/ipfs/go-ipfs/core"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	"github.com/ipfs/go-ipfs/core/coreunix"
 	dag "github.com/ipfs/go-ipfs/merkledag"
 	path "github.com/ipfs/go-ipfs/path"
@@ -66,8 +67,15 @@ represent it.
 	Type: coreunix.AddedObject{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
-			o := v.(*coreunix.AddedObject)
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+
+			o, ok := v.(*coreunix.AddedObject)
+			if !ok {
+				return nil, e.TypeErr(o, v)
+			}
 			return strings.NewReader(o.Hash + "\n"), nil
 		},
 	},

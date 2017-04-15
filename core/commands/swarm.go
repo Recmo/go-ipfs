@@ -10,6 +10,7 @@ import (
 
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	repo "github.com/ipfs/go-ipfs/repo"
 	config "github.com/ipfs/go-ipfs/repo/config"
 	"github.com/ipfs/go-ipfs/repo/fsrepo"
@@ -122,11 +123,14 @@ var swarmPeersCmd = &cmds.Command{
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
 
 			ci, ok := v.(*connInfos)
 			if !ok {
-				return nil, fmt.Errorf("expected output type to be connInfos")
+				return nil, e.TypeErr(ci, v)
 			}
 
 			buf := new(bytes.Buffer)
@@ -230,11 +234,14 @@ var swarmAddrsCmd = &cmds.Command{
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
 
 			m, ok := v.(*addrMap)
 			if !ok {
-				return nil, errors.New("failed to cast map[string]string")
+				return nil, e.TypeErr(m, v)
 			}
 
 			// sort the ids first
@@ -446,12 +453,14 @@ it will reconnect.
 func stringListMarshaler(res cmds.Response) (io.Reader, error) {
 	log.Debug("stringListMarshaler()")
 
-	v := unwrapOutput(res.Output())
+	v, err := unwrapOutput(res.Output())
+	if err != nil {
+		return nil, err
+	}
 
 	list, ok := v.(*stringList)
 	if !ok {
-		log.Debug("stringListMarshaler: stringlist cast failed")
-		return nil, errors.New("failed to cast []string")
+		return nil, e.TypeErr(list, v)
 	}
 
 	buf := new(bytes.Buffer)

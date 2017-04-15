@@ -11,9 +11,9 @@ import (
 	oldCmds "github.com/ipfs/go-ipfs/commands"
 
 	"github.com/ipfs/go-ipfs/core"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	"github.com/ipfs/go-ipfs/filestore"
 	cid "gx/ipfs/QmV5gPoRsjN1Gid3LMdNZTyfCtP2DsvqEbMAmz82RmmiGk/go-cid"
-	//u "gx/ipfs/QmZuY8aV7zbNXVy6DyN9SmnuH3o9nG852F4aTiSBpts8d1/go-ipfs-util"
 )
 
 var FileStoreCmd = &cmds.Command{
@@ -79,6 +79,7 @@ The output is:
 	},
 	PostRun: cmds.PostRunMap{
 		cmds.CLI: func(req cmds.Request, re cmds.ResponseEmitter) cmds.ResponseEmitter {
+			log.Debug("PostRun enter")
 			re_, res := cmds.NewChanResponsePair(req)
 
 			go func() {
@@ -96,7 +97,12 @@ The output is:
 						break
 					}
 
-					r := v.(*filestore.ListRes)
+					r, ok := v.(*filestore.ListRes)
+					if !ok {
+						log.Error(e.New(e.TypeErr(r, v)))
+						return
+					}
+
 					if r.ErrorMsg != "" {
 						errors = true
 						fmt.Fprintf(os.Stderr, "%s\n", r.ErrorMsg)
@@ -176,8 +182,16 @@ For ERROR entries the error will also be printed to stderr.
 	},
 	Marshalers: oldCmds.MarshalerMap{
 		oldCmds.Text: func(res oldCmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
-			r := v.(*filestore.ListRes)
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+
+			r, ok := v.(*filestore.ListRes)
+			if !ok {
+				return nil, e.TypeErr(r, v)
+			}
+
 			if r.Status == filestore.StatusOtherError {
 				fmt.Fprintf(res.Stderr(), "%s\n", r.ErrorMsg)
 			}

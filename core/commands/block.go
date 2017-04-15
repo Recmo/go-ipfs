@@ -11,9 +11,9 @@ import (
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	"github.com/ipfs/go-ipfs/blocks"
 	util "github.com/ipfs/go-ipfs/blocks/blockstore/util"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 
 	cid "gx/ipfs/QmV5gPoRsjN1Gid3LMdNZTyfCtP2DsvqEbMAmz82RmmiGk/go-cid"
-	//u "gx/ipfs/QmZuY8aV7zbNXVy6DyN9SmnuH3o9nG852F4aTiSBpts8d1/go-ipfs-util"
 	mh "gx/ipfs/QmbZ6Cee2uHjG7hf19qLHppgKDRtaG4CVtMzdmK9VCVqLu/go-multihash"
 )
 
@@ -75,7 +75,10 @@ on raw IPFS blocks. It outputs the following to stdout:
 	Type: BlockStat{},
 	Encoders: map[cmds.EncodingType]func(cmds.Request) func(io.Writer) cmds.Encoder{
 		cmds.Text: cmds.MakeEncoder(func(w io.Writer, v interface{}) error {
-			bs := v.(*BlockStat)
+			bs, ok := v.(*BlockStat)
+			if !ok {
+				return e.TypeErr(bs, v)
+			}
 			_, err := fmt.Fprintf(w, "%s", bs)
 			return err
 		}),
@@ -207,7 +210,10 @@ It reads from stdin, and <key> is a base58 encoded multihash.
 	},
 	Encoders: map[cmds.EncodingType]func(cmds.Request) func(io.Writer) cmds.Encoder{
 		cmds.Text: cmds.MakeEncoder(func(w io.Writer, v interface{}) error {
-			bs := v.(*BlockStat)
+			bs, ok := v.(*BlockStat)
+			if !ok {
+				return e.TypeErr(bs, v)
+			}
 			_, err := fmt.Fprintf(w, "%s\n", bs.Key)
 			return err
 		}),
@@ -330,7 +336,12 @@ It takes a list of base58 encoded multihashs to remove.
 						return
 					}
 
-					r := v.(*util.RemovedBlock)
+					r, ok := v.(*util.RemovedBlock)
+					if !ok {
+						log.Error(e.New(e.TypeErr(r, v)))
+						break
+					}
+
 					if r.Hash == "" && r.Error != "" {
 						fmt.Fprintf(os.Stderr, "aborted: %s\n", r.Error)
 						someFailed = true

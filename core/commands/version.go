@@ -10,6 +10,7 @@ import (
 	cmds "github.com/ipfs/go-ipfs/commands"
 	config "github.com/ipfs/go-ipfs/repo/config"
 	fsrepo "github.com/ipfs/go-ipfs/repo/fsrepo"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 )
 
 type VersionOutput struct {
@@ -43,15 +44,14 @@ var VersionCmd = &cmds.Command{
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			ch, ok := res.Output().(chan interface{})
-			if !ok {
-				return nil, fmt.Errorf("cast error. got %T, expected chan interface{}", res)
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
 			}
 
-			out := <-ch
-			v, ok := out.(*VersionOutput)
+			version, ok := v.(*VersionOutput)
 			if !ok {
-				return nil, fmt.Errorf("cast error. got %T, expected *VersionOutput", out)
+				return nil, e.TypeErr(version, v)
 			}
 
 			repo, _, err := res.Request().Option("repo").Bool()
@@ -60,7 +60,7 @@ var VersionCmd = &cmds.Command{
 			}
 
 			if repo {
-				return strings.NewReader(v.Repo + "\n"), nil
+				return strings.NewReader(version.Repo + "\n"), nil
 			}
 
 			commit, _, err := res.Request().Option("commit").Bool()
@@ -69,7 +69,7 @@ var VersionCmd = &cmds.Command{
 				return nil, err
 			}
 			if commit {
-				commitTxt = "-" + v.Commit
+				commitTxt = "-" + version.Commit
 			}
 
 			number, _, err := res.Request().Option("number").Bool()
@@ -77,7 +77,7 @@ var VersionCmd = &cmds.Command{
 				return nil, err
 			}
 			if number {
-				return strings.NewReader(fmt.Sprintln(v.Version + commitTxt)), nil
+				return strings.NewReader(fmt.Sprintln(version.Version + commitTxt)), nil
 			}
 
 			all, _, err := res.Request().Option("all").Bool()
@@ -87,11 +87,11 @@ var VersionCmd = &cmds.Command{
 			if all {
 				out := fmt.Sprintf("go-ipfs version: %s-%s\n"+
 					"Repo version: %s\nSystem version: %s\nGolang version: %s\n",
-					v.Version, v.Commit, v.Repo, v.System, v.Golang)
+					version.Version, version.Commit, version.Repo, version.System, version.Golang)
 				return strings.NewReader(out), nil
 			}
 
-			return strings.NewReader(fmt.Sprintf("ipfs version %s%s\n", v.Version, commitTxt)), nil
+			return strings.NewReader(fmt.Sprintf("ipfs version %s%s\n", version.Version, commitTxt)), nil
 		},
 	},
 	Type: VersionOutput{},

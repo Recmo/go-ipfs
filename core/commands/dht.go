@@ -10,6 +10,7 @@ import (
 
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	dag "github.com/ipfs/go-ipfs/merkledag"
 	path "github.com/ipfs/go-ipfs/path"
 
@@ -18,7 +19,6 @@ import (
 	notif "gx/ipfs/QmUc6twRJRE9MNrUGd8eo9WjHHxebGppdZfptGCASkR7fF/go-libp2p-routing/notifications"
 	cid "gx/ipfs/QmV5gPoRsjN1Gid3LMdNZTyfCtP2DsvqEbMAmz82RmmiGk/go-cid"
 	peer "gx/ipfs/QmWUswjn261LSyVxWAEpMVtPdy8zmKBJJfBpG3Qdpa8ZsE/go-libp2p-peer"
-	u "gx/ipfs/QmZuY8aV7zbNXVy6DyN9SmnuH3o9nG852F4aTiSBpts8d1/go-ipfs-util"
 	ipdht "gx/ipfs/QmaoxFZcgwGyoB57pCYQobejLoNgqaA6trr3zxxrbm4UXe/go-libp2p-kad-dht"
 	pstore "gx/ipfs/Qme1g4e3m2SmdiSGGU3vSWmUStwUjc5oECnEriaK9Xa1HU/go-libp2p-peerstore"
 )
@@ -108,10 +108,14 @@ var queryDhtCmd = &cmds.Command{
 			}
 
 			return func(res cmds.Response) (io.Reader, error) {
-				v := unwrapOutput(res.Output())
+				v, err := unwrapOutput(res.Output())
+				if err != nil {
+					return nil, err
+				}
+
 				obj, ok := v.(*notif.QueryEvent)
 				if !ok {
-					return nil, u.ErrCast()
+					return nil, e.TypeErr(obj, v)
 				}
 
 				verbose, _, _ := res.Request().Option("v").Bool()
@@ -207,11 +211,14 @@ var findProvidersDhtCmd = &cmds.Command{
 
 			return func(res cmds.Response) (io.Reader, error) {
 				verbose, _, _ := res.Request().Option("v").Bool()
-				v := unwrapOutput(res.Output())
+				v, err := unwrapOutput(res.Output())
+				if err != nil {
+					return nil, err
+				}
 
 				obj, ok := v.(*notif.QueryEvent)
 				if !ok {
-					return nil, u.ErrCast()
+					return nil, e.TypeErr(obj, v)
 				}
 
 				buf := new(bytes.Buffer)
@@ -312,10 +319,13 @@ var provideRefDhtCmd = &cmds.Command{
 
 			return func(res cmds.Response) (io.Reader, error) {
 				verbose, _, _ := res.Request().Option("v").Bool()
-				v := unwrapOutput(res.Output)
+				v, err := unwrapOutput(res.Output())
+				if err != nil {
+					return nil, err
+				}
 				obj, ok := v.(*notif.QueryEvent)
 				if !ok {
-					return nil, u.ErrCast()
+					return nil, e.TypeErr(obj, v)
 				}
 
 				buf := new(bytes.Buffer)
@@ -437,12 +447,14 @@ var findPeerDhtCmd = &cmds.Command{
 
 			return func(res cmds.Response) (io.Reader, error) {
 				verbose, _, _ := res.Request().Option("v").Bool()
-				v := unwrapOutput(res.Output())
+				v, err := unwrapOutput(res.Output())
+				if err != nil {
+					return nil, err
+				}
 
 				obj, ok := v.(*notif.QueryEvent)
 				if !ok {
-					log.Errorf("expected type %T, got %T", obj, v)
-					return nil, u.ErrCast()
+					return nil, e.TypeErr(obj, v)
 				}
 
 				buf := new(bytes.Buffer)
@@ -537,11 +549,14 @@ Different key types can specify other 'best' rules.
 
 			return func(res cmds.Response) (io.Reader, error) {
 				verbose, _, _ := res.Request().Option("v").Bool()
-				v := unwrapOutput(res.Output())
+				v, err := unwrapOutput(res.Output())
+				if err != nil {
+					return nil, err
+				}
 
 				obj, ok := v.(*notif.QueryEvent)
 				if !ok {
-					return nil, u.ErrCast()
+					return nil, e.TypeErr(obj, v)
 				}
 
 				buf := new(bytes.Buffer)
@@ -644,10 +659,13 @@ NOTE: A value may not exceed 2048 bytes.
 
 			return func(res cmds.Response) (io.Reader, error) {
 				verbose, _, _ := res.Request().Option("v").Bool()
-				v := unwrapOutput(res.Output())
+				v, err := unwrapOutput(res.Output())
+				if err != nil {
+					return nil, err
+				}
 				obj, ok := v.(*notif.QueryEvent)
 				if !ok {
-					return nil, u.ErrCast()
+					return nil, e.TypeErr(obj, v)
 				}
 
 				buf := new(bytes.Buffer)

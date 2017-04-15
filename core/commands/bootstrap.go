@@ -8,10 +8,10 @@ import (
 
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	repo "github.com/ipfs/go-ipfs/repo"
 	config "github.com/ipfs/go-ipfs/repo/config"
 	"github.com/ipfs/go-ipfs/repo/fsrepo"
-	u "gx/ipfs/QmZuY8aV7zbNXVy6DyN9SmnuH3o9nG852F4aTiSBpts8d1/go-ipfs-util"
 )
 
 type BootstrapOutput struct {
@@ -113,10 +113,14 @@ in the bootstrap list).
 	Type: BootstrapOutput{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+
 			out, ok := v.(*BootstrapOutput)
 			if !ok {
-				return nil, u.ErrCast()
+				return nil, e.TypeErr(out, v)
 			}
 
 			buf := new(bytes.Buffer)
@@ -166,10 +170,14 @@ in the bootstrap list).`,
 	Type: BootstrapOutput{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+
 			out, ok := v.(*BootstrapOutput)
 			if !ok {
-				return nil, u.ErrCast()
+				return nil, e.TypeErr(out, v)
 			}
 
 			buf := new(bytes.Buffer)
@@ -239,24 +247,18 @@ var bootstrapRemoveCmd = &cmds.Command{
 	Type: BootstrapOutput{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			var (
-				ch <-chan interface{}
-				ok bool
-			)
-
-			if ch, ok = res.Output().(<-chan interface{}); !ok {
-				if ch, ok = res.Output().(chan interface{}); !ok {
-					return nil, u.ErrCast()
-				}
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
 			}
 
-			v, ok := (<-ch).(*BootstrapOutput)
+			out, ok := v.(*BootstrapOutput)
 			if !ok {
-				return nil, u.ErrCast()
+				return nil, e.TypeErr(out, v)
 			}
 
 			buf := new(bytes.Buffer)
-			err := bootstrapWritePeers(buf, "removed ", v.Peers)
+			err = bootstrapWritePeers(buf, "removed ", out.Peers)
 			return buf, err
 		},
 	},
@@ -292,14 +294,18 @@ var bootstrapRemoveAllCmd = &cmds.Command{
 	Type: BootstrapOutput{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+
 			out, ok := v.(*BootstrapOutput)
 			if !ok {
-				return nil, u.ErrCast()
+				return nil, e.TypeErr(out, v)
 			}
 
 			buf := new(bytes.Buffer)
-			err := bootstrapWritePeers(buf, "removed ", out.Peers)
+			err = bootstrapWritePeers(buf, "removed ", out.Peers)
 			return buf, err
 		},
 	},
@@ -339,14 +345,18 @@ var bootstrapListCmd = &cmds.Command{
 }
 
 func bootstrapMarshaler(res cmds.Response) (io.Reader, error) {
-	v := unwrapOutput(res.Output())
+	v, err := unwrapOutput(res.Output())
+	if err != nil {
+		return nil, err
+	}
+
 	out, ok := v.(*BootstrapOutput)
 	if !ok {
-		return nil, u.ErrCast()
+		return nil, e.TypeErr(out, v)
 	}
 
 	buf := new(bytes.Buffer)
-	err := bootstrapWritePeers(buf, "", out.Peers)
+	err = bootstrapWritePeers(buf, "", out.Peers)
 	return buf, err
 }
 

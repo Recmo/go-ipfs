@@ -10,6 +10,7 @@ import (
 
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 )
 
 var ActiveReqsCmd = &cmds.Command{
@@ -38,15 +39,14 @@ Lists running and recently run commands.
 	},
 	Marshalers: map[cmds.EncodingType]cmds.Marshaler{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
-			if v == nil {
-				log.Error("wrapped: %#v", res.Output())
-				return nil, cmds.ErrIncorrectType
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
 			}
+
 			out, ok := v.(*[]*cmds.ReqLogEntry)
 			if !ok {
-				log.Errorf("unwrapped: %#v", v)
-				return nil, cmds.ErrIncorrectType
+				return nil, e.TypeErr(out, v)
 			}
 			buf := new(bytes.Buffer)
 

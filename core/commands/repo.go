@@ -11,13 +11,13 @@ import (
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	bstore "github.com/ipfs/go-ipfs/blocks/blockstore"
 	cmds "github.com/ipfs/go-ipfs/commands"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	corerepo "github.com/ipfs/go-ipfs/core/corerepo"
 	config "github.com/ipfs/go-ipfs/repo/config"
 	fsrepo "github.com/ipfs/go-ipfs/repo/fsrepo"
 	lockfile "github.com/ipfs/go-ipfs/repo/fsrepo/lock"
 
 	cid "gx/ipfs/QmV5gPoRsjN1Gid3LMdNZTyfCtP2DsvqEbMAmz82RmmiGk/go-cid"
-	u "gx/ipfs/QmZuY8aV7zbNXVy6DyN9SmnuH3o9nG852F4aTiSBpts8d1/go-ipfs-util"
 )
 
 type RepoVersion struct {
@@ -107,7 +107,10 @@ order to reclaim hard disk space.
 	Type: GcResult{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
 
 			quiet, _, err := res.Request().Option("quiet").Bool()
 			if err != nil {
@@ -116,7 +119,7 @@ order to reclaim hard disk space.
 
 			obj, ok := v.(*GcResult)
 			if !ok {
-				return nil, u.ErrCast()
+				return nil, e.TypeErr(obj, v)
 			}
 
 			if obj.Error != "" {
@@ -166,10 +169,13 @@ Version         string The repo version.
 	Type: corerepo.Stat{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
 			stat, ok := v.(*corerepo.Stat)
 			if !ok {
-				return nil, u.ErrCast()
+				return nil, e.TypeErr(stat, v)
 			}
 
 			human, _, err := res.Request().Option("human").Bool()
@@ -301,11 +307,14 @@ var repoVerifyCmd = &cmds.Command{
 	Type: VerifyProgress{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
 
 			obj, ok := v.(*VerifyProgress)
 			if !ok {
-				return nil, u.ErrCast()
+				return nil, e.TypeErr(obj, v)
 			}
 
 			buf := new(bytes.Buffer)
@@ -345,8 +354,14 @@ var repoVersionCmd = &cmds.Command{
 	Type: RepoVersion{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
-			response := v.(*RepoVersion)
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+			response, ok := v.(*RepoVersion)
+			if !ok {
+				return nil, e.TypeErr(response, v)
+			}
 
 			quiet, _, err := res.Request().Option("quiet").Bool()
 			if err != nil {

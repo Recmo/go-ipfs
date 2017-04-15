@@ -14,6 +14,7 @@ import (
 	"github.com/ipfs/go-ipfs-cmds"
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	core "github.com/ipfs/go-ipfs/core"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	dag "github.com/ipfs/go-ipfs/merkledag"
 	path "github.com/ipfs/go-ipfs/path"
 	tar "github.com/ipfs/go-ipfs/thirdparty/tar"
@@ -109,10 +110,15 @@ may also specify the level of compression by specifying '-l=<1-9>'.
 
 				v, err := res.Next()
 				if err != nil {
-					//TODO XXX
+					log.Error(e.New(err))
+					return
 				}
 
-				outReader := v.(io.Reader)
+				outReader, ok := v.(io.Reader)
+				if !ok {
+					log.Error(e.New(e.TypeErr(outReader, v)))
+					return
+				}
 
 				outPath, _, _ := req.Option("output").String()
 				if len(outPath) == 0 {

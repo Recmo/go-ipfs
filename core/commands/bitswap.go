@@ -7,13 +7,13 @@ import (
 
 	cmdsutil "github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	bitswap "github.com/ipfs/go-ipfs/exchange/bitswap"
 	decision "github.com/ipfs/go-ipfs/exchange/bitswap/decision"
 
 	"gx/ipfs/QmPSBJL4momYnE7DcUyk2DVhD6rH488ZmHBGLbxNdhU44K/go-humanize"
 	cid "gx/ipfs/QmV5gPoRsjN1Gid3LMdNZTyfCtP2DsvqEbMAmz82RmmiGk/go-cid"
 	peer "gx/ipfs/QmWUswjn261LSyVxWAEpMVtPdy8zmKBJJfBpG3Qdpa8ZsE/go-libp2p-peer"
-	u "gx/ipfs/QmZuY8aV7zbNXVy6DyN9SmnuH3o9nG852F4aTiSBpts8d1/go-ipfs-util"
 )
 
 var BitswapCmd = &cmds.Command{
@@ -50,7 +50,7 @@ var unwantCmd = &cmds.Command{
 
 		bs, ok := nd.Exchange.(*bitswap.Bitswap)
 		if !ok {
-			res.SetError(u.ErrCast(), cmdsutil.ErrNormal)
+			res.SetError(e.TypeErr(bs, nd.Exchange), cmdsutil.ErrNormal)
 			return
 		}
 
@@ -93,7 +93,7 @@ Print out all blocks currently on the bitswap wantlist for the local peer.`,
 
 		bs, ok := nd.Exchange.(*bitswap.Bitswap)
 		if !ok {
-			res.SetError(u.ErrCast(), cmdsutil.ErrNormal)
+			res.SetError(e.TypeErr(bs, nd.Exchange), cmdsutil.ErrNormal)
 			return
 		}
 
@@ -138,7 +138,7 @@ var bitswapStatCmd = &cmds.Command{
 
 		bs, ok := nd.Exchange.(*bitswap.Bitswap)
 		if !ok {
-			res.SetError(u.ErrCast(), cmdsutil.ErrNormal)
+			res.SetError(e.TypeErr(bs, nd.Exchange), cmdsutil.ErrNormal)
 			return
 		}
 
@@ -152,10 +152,14 @@ var bitswapStatCmd = &cmds.Command{
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+
 			out, ok := v.(*bitswap.Stat)
 			if !ok {
-				return nil, u.ErrCast()
+				return nil, e.TypeErr(out, v)
 			}
 			buf := new(bytes.Buffer)
 			fmt.Fprintln(buf, "bitswap status")
@@ -206,7 +210,7 @@ prints the ledger associated with a given peer.
 
 		bs, ok := nd.Exchange.(*bitswap.Bitswap)
 		if !ok {
-			res.SetError(u.ErrCast(), cmdsutil.ErrNormal)
+			res.SetError(e.TypeErr(bs, nd.Exchange), cmdsutil.ErrNormal)
 			return
 		}
 
@@ -219,11 +223,16 @@ prints the ledger associated with a given peer.
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+
 			out, ok := v.(*decision.Receipt)
 			if !ok {
-				return nil, u.ErrCast()
+				return nil, e.TypeErr(out, v)
 			}
+
 			buf := new(bytes.Buffer)
 			fmt.Fprintf(buf, "Ledger for %s\n"+
 				"Debt ratio:\t%f\n"+

@@ -8,6 +8,7 @@ import (
 	cmdsutil "github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
 	core "github.com/ipfs/go-ipfs/core"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	dag "github.com/ipfs/go-ipfs/merkledag"
 	dagutils "github.com/ipfs/go-ipfs/merkledag/utils"
 	path "github.com/ipfs/go-ipfs/path"
@@ -110,10 +111,17 @@ Example:
 	Type: Changes{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
 
 			verbose, _, _ := res.Request().Option("v").Bool()
-			changes := v.(*Changes)
+			changes, ok := v.(*Changes)
+			if !ok {
+				return nil, e.TypeErr(changes, v)
+			}
+
 			buf := new(bytes.Buffer)
 			for _, change := range changes.Changes {
 				if verbose {

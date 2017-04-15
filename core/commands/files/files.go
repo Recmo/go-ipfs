@@ -13,6 +13,7 @@ import (
 	cmdsutil "github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
 	core "github.com/ipfs/go-ipfs/core"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	dag "github.com/ipfs/go-ipfs/merkledag"
 	mfs "github.com/ipfs/go-ipfs/mfs"
 	path "github.com/ipfs/go-ipfs/path"
@@ -114,8 +115,15 @@ Type: <type>`),
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
-			out := v.(*Object)
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+
+			out, ok := v.(*Object)
+			if !ok {
+				return nil, e.TypeErr(out, v)
+			}
 			buf := new(bytes.Buffer)
 
 			s, _ := statGetFormatOptions(res.Request())
@@ -381,8 +389,16 @@ Examples:
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
-			out := v.(*FilesLsOutput)
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+
+			out, ok := v.(*FilesLsOutput)
+			if !ok {
+				return nil, e.TypeErr(out, v)
+			}
+
 			buf := new(bytes.Buffer)
 			long, _, _ := res.Request().Option("l").Bool()
 
@@ -929,17 +945,15 @@ func checkPath(p string) (string, error) {
 }
 
 // copy+pasted from ../commands.go
-func unwrapOutput(i interface{}) interface{} {
+func unwrapOutput(i interface{}) (interface{}, error) {
 	var (
 		ch <-chan interface{}
 		ok bool
 	)
 
 	if ch, ok = i.(<-chan interface{}); !ok {
-		if ch, ok = i.(chan interface{}); !ok {
-			return nil
-		}
+		return nil, e.TypeErr(ch, i)
 	}
 
-	return <-ch
+	return <-ch, nil
 }

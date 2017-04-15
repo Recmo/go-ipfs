@@ -8,11 +8,11 @@ import (
 	cmdsutil "github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
 	core "github.com/ipfs/go-ipfs/core"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	dag "github.com/ipfs/go-ipfs/merkledag"
 	dagutils "github.com/ipfs/go-ipfs/merkledag/utils"
 	path "github.com/ipfs/go-ipfs/path"
 	ft "github.com/ipfs/go-ipfs/unixfs"
-	u "gx/ipfs/QmZuY8aV7zbNXVy6DyN9SmnuH3o9nG852F4aTiSBpts8d1/go-ipfs-util"
 )
 
 var ObjectPatchCmd = &cmds.Command{
@@ -34,17 +34,14 @@ result. This is the Merkle-DAG version of modifying an object.
 }
 
 func objectMarshaler(res cmds.Response) (io.Reader, error) {
-	var ch <-chan interface{}
-
-	if ch_, ok := res.Output().(chan interface{}); ok {
-		ch = ch_
-	} else {
-		ch = res.Output().(chan interface{})
+	v, err := unwrapOutput(res.Output())
+	if err != nil {
+		return nil, err
 	}
 
-	o, ok := (<-ch).(*Object)
+	o, ok := v.(*Object)
 	if !ok {
-		return nil, u.ErrCast()
+		return nil, e.TypeErr(o, v)
 	}
 
 	return strings.NewReader(o.Hash + "\n"), nil

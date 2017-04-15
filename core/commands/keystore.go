@@ -3,7 +3,6 @@ package commands
 import (
 	"bytes"
 	"crypto/rand"
-	"errors"
 	"fmt"
 	"io"
 	"sort"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 
 	ci "gx/ipfs/QmPGxZ1DP2w45WcogpW1h43BvseXbfke9N91qotpoQcUeS/go-libp2p-crypto"
 	peer "gx/ipfs/QmWUswjn261LSyVxWAEpMVtPdy8zmKBJJfBpG3Qdpa8ZsE/go-libp2p-peer"
@@ -140,10 +140,14 @@ var KeyGenCmd = &cmds.Command{
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+
 			k, ok := v.(*KeyOutput)
 			if !ok {
-				return nil, fmt.Errorf("expected a KeyOutput as command result")
+				return nil, e.TypeErr(k, v)
 			}
 
 			return strings.NewReader(k.Id + "\n"), nil
@@ -207,10 +211,13 @@ var KeyListCmd = &cmds.Command{
 func keyOutputListMarshaler(res cmds.Response) (io.Reader, error) {
 	withId, _, _ := res.Request().Option("l").Bool()
 
-	v := unwrapOutput(res.Output())
+	v, err := unwrapOutput(res.Output())
+	if err != nil {
+		return nil, err
+	}
 	list, ok := v.(*KeyOutputList)
 	if !ok {
-		return nil, errors.New("failed to cast []KeyOutput")
+		return nil, e.TypeErr(list, v)
 	}
 
 	buf := new(bytes.Buffer)

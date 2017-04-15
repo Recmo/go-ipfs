@@ -13,11 +13,11 @@ import (
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
 	core "github.com/ipfs/go-ipfs/core"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	kb "gx/ipfs/QmTxn7JEA8DiBvd9vVzErAzadHn6TwjCKTjjUfPyRH9wjZ/go-libp2p-kbucket"
 
 	ic "gx/ipfs/QmPGxZ1DP2w45WcogpW1h43BvseXbfke9N91qotpoQcUeS/go-libp2p-crypto"
 	"gx/ipfs/QmWUswjn261LSyVxWAEpMVtPdy8zmKBJJfBpG3Qdpa8ZsE/go-libp2p-peer"
-	u "gx/ipfs/QmZuY8aV7zbNXVy6DyN9SmnuH3o9nG852F4aTiSBpts8d1/go-ipfs-util"
 	pstore "gx/ipfs/Qme1g4e3m2SmdiSGGU3vSWmUStwUjc5oECnEriaK9Xa1HU/go-libp2p-peerstore"
 	identify "gx/ipfs/QmeWJwi61vii5g8zQUB9UGegfUbmhTKHgeDFP9XuSp5jZ4/go-libp2p/p2p/protocol/identify"
 )
@@ -117,15 +117,14 @@ EXAMPLE:
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			ch, ok := res.Output().(chan interface{})
-			if !ok {
-				log.Debugf("received type %T", res.Output())
-				return nil, u.ErrCast()
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
 			}
 
-			val, ok := (<-ch).(*IdOutput)
+			val, ok := v.(*IdOutput)
 			if !ok {
-				return nil, u.ErrCast()
+				return nil, e.TypeErr(val, v)
 			}
 
 			format, found, err := res.Request().Option("format").String()

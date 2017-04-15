@@ -9,6 +9,7 @@ import (
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
 	core "github.com/ipfs/go-ipfs/core"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	corerepo "github.com/ipfs/go-ipfs/core/corerepo"
 	dag "github.com/ipfs/go-ipfs/merkledag"
 	path "github.com/ipfs/go-ipfs/path"
@@ -16,7 +17,6 @@ import (
 
 	context "context"
 	cid "gx/ipfs/QmV5gPoRsjN1Gid3LMdNZTyfCtP2DsvqEbMAmz82RmmiGk/go-cid"
-	u "gx/ipfs/QmZuY8aV7zbNXVy6DyN9SmnuH3o9nG852F4aTiSBpts8d1/go-ipfs-util"
 )
 
 var PinCmd = &cmds.Command{
@@ -123,7 +123,10 @@ var addPinCmd = &cmds.Command{
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
 
 			var added []string
 
@@ -132,6 +135,7 @@ var addPinCmd = &cmds.Command{
 				if out.Pins != nil {
 					added = out.Pins
 				} else {
+					// this can only happen if the progress option is set
 					fmt.Fprintf(res.Stderr(), "Fetched/Processed %d nodes\r", out.Progress)
 				}
 
@@ -139,7 +143,7 @@ var addPinCmd = &cmds.Command{
 					return nil, res.Error()
 				}
 			default:
-				return nil, u.ErrCast()
+				return nil, e.TypeErr(out, v)
 			}
 
 			var pintype string
@@ -199,11 +203,14 @@ collected if needed. (By default, recursively. Use -r=false for direct pins.)
 	},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
 
 			added, ok := v.(*PinOutput)
 			if !ok {
-				return nil, u.ErrCast()
+				return nil, e.TypeErr(added, v)
 			}
 
 			buf := new(bytes.Buffer)
@@ -304,7 +311,10 @@ Example:
 	Type: RefKeyList{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
 
 			quiet, _, err := res.Request().Option("quiet").Bool()
 			if err != nil {
@@ -313,7 +323,7 @@ Example:
 
 			keys, ok := v.(*RefKeyList)
 			if !ok {
-				return nil, u.ErrCast()
+				return nil, e.TypeErr(keys, v)
 			}
 			out := new(bytes.Buffer)
 			for k, v := range keys.Keys {

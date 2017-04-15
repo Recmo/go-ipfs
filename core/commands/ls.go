@@ -10,6 +10,7 @@ import (
 	blockservice "github.com/ipfs/go-ipfs/blockservice"
 	cmds "github.com/ipfs/go-ipfs/commands"
 	core "github.com/ipfs/go-ipfs/core"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	offline "github.com/ipfs/go-ipfs/exchange/offline"
 	merkledag "github.com/ipfs/go-ipfs/merkledag"
 	path "github.com/ipfs/go-ipfs/path"
@@ -158,10 +159,17 @@ The JSON output contains type information.
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
 
-			outCh := res.Output().(chan interface{})
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
 
 			headers, _, _ := res.Request().Option("headers").Bool()
-			output := (<-outCh).(*LsOutput)
+			output, ok := v.(*LsOutput)
+			if !ok {
+				return nil, e.TypeErr(output, v)
+			}
+
 			buf := new(bytes.Buffer)
 			w := tabwriter.NewWriter(buf, 1, 2, 1, ' ', 0)
 			for _, object := range output.Objects {

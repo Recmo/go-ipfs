@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	cmds "github.com/ipfs/go-ipfs/commands"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	path "github.com/ipfs/go-ipfs/path"
 
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
@@ -106,10 +107,14 @@ into an object of the specified format.
 	Type: OutputObject{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			v := unwrapOutput(res.Output())
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+
 			oobj, ok := v.(*OutputObject)
 			if !ok {
-				return nil, fmt.Errorf("expected a different object in marshaler")
+				return nil, e.TypeErr(oobj, v)
 			}
 
 			return strings.NewReader(oobj.Cid.String()), nil
@@ -186,17 +191,15 @@ func convertRawToType(r io.Reader, format string) (node.Node, error) {
 }
 
 // copy+pasted from ../commands.go
-func unwrapOutput(i interface{}) interface{} {
+func unwrapOutput(i interface{}) (interface{}, error) {
 	var (
 		ch <-chan interface{}
 		ok bool
 	)
 
 	if ch, ok = i.(<-chan interface{}); !ok {
-		if ch, ok = i.(chan interface{}); !ok {
-			return nil
-		}
+		return nil, e.TypeErr(ch, i)
 	}
 
-	return <-ch
+	return <-ch, nil
 }

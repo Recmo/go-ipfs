@@ -10,6 +10,7 @@ import (
 
 	"github.com/ipfs/go-ipfs-cmds/cmdsutil"
 	cmds "github.com/ipfs/go-ipfs/commands"
+	e "github.com/ipfs/go-ipfs/core/commands/e"
 	nodeMount "github.com/ipfs/go-ipfs/fuse/node"
 	config "github.com/ipfs/go-ipfs/repo/config"
 )
@@ -127,10 +128,18 @@ baz
 	Type: config.Mounts{},
 	Marshalers: cmds.MarshalerMap{
 		cmds.Text: func(res cmds.Response) (io.Reader, error) {
-			ch := res.Output().(chan interface{})
-			v := (<-ch).(*config.Mounts)
-			s := fmt.Sprintf("IPFS mounted at: %s\n", v.IPFS)
-			s += fmt.Sprintf("IPNS mounted at: %s\n", v.IPNS)
+			v, err := unwrapOutput(res.Output())
+			if err != nil {
+				return nil, err
+			}
+
+			mnts, ok := v.(*config.Mounts)
+			if !ok {
+				return nil, e.TypeErr(mnts, v)
+			}
+
+			s := fmt.Sprintf("IPFS mounted at: %s\n", mnts.IPFS)
+			s += fmt.Sprintf("IPNS mounted at: %s\n", mnts.IPNS)
 			return strings.NewReader(s), nil
 		},
 	},
