@@ -308,9 +308,14 @@
       "version": "0.0.0"
     },
     {
-      "hash": "QmUb9C21o1apw6UGHUnCK4a2eCoPYHkaRZwXWTYzxcztRU",
+      "hash": "QmS8PUjXjji26nedTgrEzwHeuyL3z8JYXZBKxWWWNhDVHu",
       "name": "go-ipfs-cmds",
-      "version": "0.1.1"
+      "version": "0.2.0"
+    },
+    {
+      "hash": "QmYiqbfRCkryYvJsxBopy77YEhxNZXTmq5Y2qiKyenc59C",
+      "name": "go-ipfs-cmdkit",
+      "version": "0.2.0"
     }
   ],
   "gxVersion": "0.10.0",

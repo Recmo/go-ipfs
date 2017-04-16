@@ -25,7 +25,7 @@ import (
 	unit "github.com/ipfs/go-ipfs/thirdparty/unit"
 	"gx/ipfs/QmRWDav6mzWseLWeYfVd5fvUKiVe9xNH29YfMF438fG364/go-datastore"
 	syncds "gx/ipfs/QmRWDav6mzWseLWeYfVd5fvUKiVe9xNH29YfMF438fG364/go-datastore/sync"
-	commands "gx/ipfs/QmUb9C21o1apw6UGHUnCK4a2eCoPYHkaRZwXWTYzxcztRU/go-ipfs-cmds"
+	commands "gx/ipfs/QmS8PUjXjji26nedTgrEzwHeuyL3z8JYXZBKxWWWNhDVHu/go-ipfs-cmds"
 
 	context "context"
 	ma "gx/ipfs/QmSWLfmj5frN9xVLMMN846dMDriy5wN5jeghUm7aTW3DAG/go-multiaddr"
